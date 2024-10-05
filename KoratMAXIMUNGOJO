@@ -1,0 +1,59 @@
+local tool = Instance.new("Tool")
+tool.Name = "Swift Teleport"
+tool.RequiresHandle = false
+tool.Parent = game.Players.LocalPlayer.Backpack
+
+-- Function to find the nearest player
+local function getNearestPlayer()
+    local player = game.Players.LocalPlayer
+    local character = player.Character or player.CharacterAdded:Wait()
+    local shortestDistance = math.huge
+    local nearestPlayer = nil
+    
+    for _, otherPlayer in pairs(game.Players:GetPlayers()) do
+        if otherPlayer ~= player and otherPlayer.Character and otherPlayer.Character:FindFirstChild("Humanoid") and otherPlayer.Character.Humanoid.Health > 0 then
+            local distance = (character.PrimaryPart.Position - otherPlayer.Character.PrimaryPart.Position).Magnitude
+            if distance < shortestDistance then
+                shortestDistance = distance
+                nearestPlayer = otherPlayer.Character
+            end
+        end
+    end
+    return nearestPlayer
+end
+
+-- Function to play the teleport animation
+local function playTeleportAnimation(character)
+    local humanoid = character:FindFirstChild("Humanoid")
+    if humanoid then
+        local animator = humanoid:FindFirstChildOfClass("Animator")
+        if not animator then
+            animator = Instance.new("Animator")
+            animator.Parent = humanoid
+        end
+        
+        local animation = Instance.new("Animation")
+        animation.AnimationId = "rbxassetid://13073745835"
+        local animationTrack = animator:LoadAnimation(animation)
+        animationTrack:Play()
+    end
+end
+
+-- On tool activation
+tool.Activated:Connect(function()
+    local nearestPlayer = getNearestPlayer()
+    
+    if nearestPlayer then
+        local player = game.Players.LocalPlayer
+        local character = player.Character or player.CharacterAdded:Wait()
+        
+        -- Play the teleport animation
+        playTeleportAnimation(character)
+        
+        -- Teleport the player to the nearest player's position
+        wait(0.3)  -- Slight delay before teleport
+        character:SetPrimaryPartCFrame(nearestPlayer.PrimaryPart.CFrame)
+    else
+        print("No nearby player found!")
+    end
+end)
